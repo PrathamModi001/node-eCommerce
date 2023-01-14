@@ -13,11 +13,14 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  Product.create({
+  // since we associated 2 models: we can directly add a product through a particular user. A method called create____() depending on what you gave the name in the lines of association like Product.belongsTo() or User.hasMany(Product) the method createProduct() will be created in which we dont have to input attribute like userId
+
+  // alternatively we can do Product.create({..... all methods....then... userId: req.user.Id})
+  req.user.createProduct({ // called the magic association method
     title: title,
     description: description,
     imageUrl: imageUrl,
-    price: price
+    price: price,
   })
   .then((result)=> {
     console.log(result)
@@ -43,7 +46,8 @@ exports.getEditProduct = (req, res, next) => {
       pageTitle: 'Edit Product',
       path: '/admin/edit-product',
       editing: editMode,
-      product: product
+      product: product,
+      userId: req.user.userId
     });
   })
 };
@@ -70,7 +74,8 @@ exports.postEditProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.findAll()
+  // we need all the products of the particular user
+  req.user.getProducts() // another magic association method
     .then((products) => {
       res.render('admin/products', {
         prods: products,
