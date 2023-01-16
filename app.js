@@ -17,6 +17,8 @@ const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const Cart = require('./models/cart');
 const CartItem = require('./models/cart-item');
+const Order = require('./models/order');
+const OrderItem = require("./models/order-item")
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -51,6 +53,10 @@ Cart.belongsTo(User) // Inverse Relation
 Cart.belongsToMany(Product , {through: CartItem}) // Many to Many relation
 Product.belongsToMany(Cart , {through: CartItem}) // This will only work if there is an intermediate table connecting them that stores the combination of ProductId and CartId which we have made to be cart-item
 
+// Order and Order Item Association
+Order.belongsTo(User)
+User.hasMany(Order)
+Order.belongsToMany(Product , {through : OrderItem})
 
 sequelize
 .sync()
