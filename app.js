@@ -36,7 +36,7 @@ mongoose.set('strictQuery', false);
 mongoose
   .connect(
     // 'mongodb+srv://modii:pratham@mycluster.l92tp0u.mongodb.net/testDB?retryWrites=true&w=majority', { useNewUrlParser: true }
-    "mongodb+srv://modii:pratham@mycluster.l92tp0u.mongodb.net/testDB" , { useNewUrlParser: true }
+    "mongodb+srv://<username>:<password>@mycluster.l92tp0u.mongodb.net/<DBname>" , { useNewUrlParser: true }
   )
   .then(result => {
     app.listen(3000);
