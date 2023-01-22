@@ -35,6 +35,7 @@ app.use(errorController.get404);
 mongoose.set('strictQuery', false);
 mongoose
   .connect(
+    // 'mongodb+srv://modii:pratham@mycluster.l92tp0u.mongodb.net/testDB?retryWrites=true&w=majority', { useNewUrlParser: true }
     "mongodb+srv://modii:pratham@mycluster.l92tp0u.mongodb.net/testDB" , { useNewUrlParser: true }
   )
   .then(result => {
