@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const Order = require("../models/order")
 
 exports.getProducts = (req, res, next) => {
   Product.find()
@@ -52,8 +53,12 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
   req.user
-    .getCart()
-    .then(products => {
+    // check userSchema. since we start from user and it has relationship with cart: we can do populate("cart")
+    // populate("cart") will return the entire uppermost level entity ==> the entire user here.
+    .populate('cart.items.productId')
+    .then(user => {
+      const products = user.cart.items;
+      console.log(user.cart.items)
       res.render('shop/cart', {
         path: '/cart',
         pageTitle: 'Your Cart',
@@ -86,18 +91,31 @@ exports.postCartDeleteProduct = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
-  let fetchedCart;
-  req.user
-    .addOrder()
-    .then(result => {
-      res.redirect('/orders');
-    })
-    .catch(err => console.log(err));
+  req.user.populate("cart.items.productId")
+  .then(user => {
+    const cartProduct = user.cart.items.map(i => {
+      return {product: {... i.productId}, quantity: i.quantity}
+    });
+    const order = new Order({
+      user: {
+        name : req.user.name,
+        userId : req.user._id
+      },
+      product : cartProduct
+    });
+    return order.save()
+  })
+  .then(result => {
+    return req.user.clearCart()
+  })
+  .then(result => {
+    return res.redirect("/orders")
+  })
+  .catch(err => console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
+  Order.find({"user.userId" : req.user._id})
     .then(orders => {
       res.render('shop/orders', {
         path: '/orders',

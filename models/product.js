@@ -18,6 +18,12 @@ const productSchema = new Schema({
   imageUrl: {
     type: String,
     required: true
+  },
+  userId : {
+    // userId => refer to any _id => ref: "user" ===> now it refers to user db ka _id
+    type : Schema.Types.ObjectId,  //mongoose.Schema.Types.ObjectId,
+    ref : "user",
+    required : true
   }
 });
 

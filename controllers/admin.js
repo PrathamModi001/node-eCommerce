@@ -17,7 +17,8 @@ exports.postAddProduct = (req, res, next) => {
         title: title,
         price: price,
         description: description,
-        imageUrl: imageUrl
+        imageUrl: imageUrl,
+        userId : req.user._id
     });
     product
         .save()
@@ -38,7 +39,6 @@ exports.getEditProduct = (req, res, next) => {
     }
     const prodId = req.params.productId;
     Product.findById(prodId)
-        // Product.findById(prodId)
         .then(product => {
             if (!product) {
                 return res.redirect('/');
