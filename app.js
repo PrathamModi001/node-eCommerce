@@ -1,3 +1,5 @@
+require("dotenv").config()
+
 const path = require('path');
 
 const express = require('express');
@@ -9,8 +11,7 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 const errorController = require('./controllers/error');
 const User = require('./models/user');
 
-const MONGODB_URI =
-  'mongodb+srv://<username>:<password>@mycluster.l92tp0u.mongodb.net/testDB';
+const MONGODB_URI = process.env.MONGO_DB_URI;
 
 const app = express();
 const store = new MongoDBStore({
