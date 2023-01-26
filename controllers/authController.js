@@ -6,63 +6,70 @@ exports.getLogin = (req, res, next) => {
     res.render("auth/login", {
         path: "/login",
         pageTitle: "Login",
-        isAuthenticated: false
+        errorMessage: req.flash('error') // via ejs show the flash via a key. so add errorMessage ejs syntax in views also
     })
 }
 
-exports.getSignup = (req,res,next) => {
+exports.getSignup = (req, res, next) => {
     res.render("auth/signup", {
         path: "/signup",
         pageTitle: "Signup",
-        isAuthenticated: false
+        errorMessage: req.flash('error')
     })
 }
 
 exports.postLogin = (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
-    User.findOne({email: email})
+    User.findOne({ email: email })
         .then(user => {
-            if(!user){
-                console.log("PLEASE SIGN UP FIRST");
-                return res.redirect("/signup")
+            if (!user) {
+                req.flash('error', "Invalid Email!") // error is the key
+                // in which page do we want to show them the message? the page they are on: Login page=> getLogin
+                return res.redirect("/login") // send them again to the page they were on so they can try again 
             }
             bcrypt
-            .compare(password , user.password)
-            .then(doMatch => {
-                if(doMatch){
-                    req.session.isLoggedIn = true;
-                    req.session.user = user;
-                    // session.save is ot req all the time but here, writing into mongoDB might take a few seconds and the redirect will be done pehle than the writing into db.
-                    return req.session.save(err => {
-                        if(err => console.log(err))
-                        res.redirect('/');
-                    });
-                }
-                console.log("PASSWORDS DONT MATCH BHAI")
-                return res.redirect("/login")
-            })
+                .compare(password, user.password)
+                .then(doMatch => {
+                    if (doMatch) {
+                        req.session.isLoggedIn = true;
+                        req.session.user = user;
+                        // session.save is ot req all the time but here, writing into mongoDB might take a few seconds and the redirect will be done pehle than the writing into db.
+                        return req.session.save(err => {
+                            if (err => console.log(err))
+                                res.redirect('/');
+                        });
+                    }
+                    else {
+                        req.flash('error', 'Invalid Password')
+                        return res.redirect("/login")
+                    }
+                })
         })
         .catch(err => console.log(err));
 };
 
-exports.postSignup = (req,res,next) => {
+exports.postSignup = (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
     const confirmPassword = req.body.confirmPassword;
 
-    User.findOne({email : email})
+    if (password !== confirmPassword) {
+        req.flash('error', "Passwords Don't Match!")
+        return res.redirect("/signup")
+    }
+    User.findOne({ email: email })
         .then(userDoc => {
-            if(userDoc){
-                console.log("User Exists!");
+            if (userDoc) {
+                req.flash('error', "User Exists!")
                 return res.redirect("/signup");
             }
-            return bcrypt.hash(password,saltRounds)
+            return bcrypt.hash(password, saltRounds)
                 .then((encryptPass) => {
                     const user = new User({
                         email: email,
                         password: encryptPass,
-                        cart: {items : []}
+                        cart: { items: [] }
                     })
                     return user.save()
                 })

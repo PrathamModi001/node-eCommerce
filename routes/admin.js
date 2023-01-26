@@ -8,6 +8,7 @@ const isAuth = require('../middleware/is-auth');
 const router = express.Router();
 
 // /admin/add-product => GET
+// after redirecting to /add-produuct the control will go into isAuth and THEN into getAddProduct
 router.get('/add-product', isAuth, adminController.getAddProduct);
 
 // /admin/products => GET

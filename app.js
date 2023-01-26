@@ -7,6 +7,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
+var csrf = require('@dr.pogodin/csurf')
+const flash = require('connect-flash')
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -14,10 +16,15 @@ const User = require('./models/user');
 const MONGODB_URI = process.env.MONGO_DB_URI;
 
 const app = express();
+// session INITIATE
 const store = new MongoDBStore({
   uri: MONGODB_URI,
   collection: 'mySessions'
 });
+
+// csrf protection and flash after sessions been initiated.
+let csrfProtection = csrf();
+app.use(flash())
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -37,6 +44,10 @@ app.use(
   })
 );
 
+// after initiating the session we'll make use of the protection:
+app.use(csrfProtection)
+
+// initializing the session
 app.use((req, res, next) => {
   if (!req.session.user) {
     return next();
@@ -49,10 +60,21 @@ app.use((req, res, next) => {
     .catch(err => console.log(err));
 });
 
-app.use('/admin', adminRoutes);
+// before accessing all routes, since want to PASS ON THESE LOCAL VARIABLES TO ALL VIEWS
+app.use((req,res,next) => {
+  // app.render("ALL VIEWS" , {isAuthenticated: req.session.isLoggedIn, csrfToken: req.csrfToken()})
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken(); // csrfToken() is a method name: csrfToken has to be the "value" field in views
+  // basically every FORM will need the name="_csrf" value="csrfToken"
+  next();
+})
+
+// routes
+app.use('/admin', adminRoutes); // /admin added before all adminRoutes=> /admin/add-product
 app.use(shopRoutes);
 app.use(authRoutes);
 
+// if a route doesnt fall in any of the above routes: then show 404 page: 
 app.use(errorController.get404);
 
 mongoose
