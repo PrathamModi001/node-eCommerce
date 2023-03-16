@@ -3,6 +3,14 @@ const bcrypt = require("bcryptjs")
 const saltRounds = 12;
 const nodemailer = require("nodemailer")
 const crypto = require("crypto")
+const transporter = nodemailer.createTransport({
+    service: 'hotmail',
+    auth: {
+        user: 'prathammodi3001@outlook.com',
+        pass: process.env.GMAIL_PASS
+    }
+})
+
 
 
 exports.getLogin = (req, res, next) => {
@@ -77,6 +85,16 @@ exports.postSignup = (req, res, next) => {
                     return user.save()
                 })
                 .then(result => {
+                    var mailOptions = {
+                        from: 'prathammodi3001@outlook.com',
+                        to: email,
+                        subject: 'Signup Succeeded',
+                        text: `You Successfully Signed up ! Yay !`
+                    };
+                    transporter.sendMail(mailOptions , (err,info) => {
+                        if(err => console.log(err))
+                        console.log("Email Sent Successfully !" , info.res  )
+                    })
                     res.redirect("/login")
                 })
         })
@@ -90,7 +108,7 @@ exports.postLogout = (req, res, next) => {
     })
 }
 
-exports.getReset = (req,res,next) => {
+exports.getReset = (req, res, next) => {
     res.render("auth/reset", {
         path: "/reset",
         pageTitle: "Reset",
@@ -99,12 +117,12 @@ exports.getReset = (req,res,next) => {
 }
 
 // for getting a token to change password only through a particular link.
-exports.postRest = (req,res,next) => {
-    crypto.randomBytes(32,(err,buffer) => {
-        if(err) {
+exports.postRest = (req, res, next) => {
+    crypto.randomBytes(32, (err, buffer) => {
+        if (err) {
             console.log(err);
             return res.redirect("/reset");
         }
-        const token = buffer.toString('hex') 
+        const token = buffer.toString('hex')
     })
 }
