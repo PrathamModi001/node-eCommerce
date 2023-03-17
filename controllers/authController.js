@@ -154,7 +154,7 @@ exports.postRest = (req, res, next) => {
                 };
                 transporter.sendMail(mailOptions, (err, info) => {
                     if (err => console.log(err))
-                        console.log("Email Sent Successfully !", info.res)
+                        console.log("Email Sent Successfully !")
                 })
                 res.redirect("/")
             })
@@ -168,7 +168,7 @@ exports.getNewPassword = (req, res, next) => {
     User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } })
         .then(userFound => {
             if (!userFound) {
-                req.flash('error', 'No Correct Token Found!')
+                req.flash('error', 'Please try to reset password again!!')
                 res.redirect("/reset")
             }
             // user with the correct resetToken found: 
@@ -182,10 +182,50 @@ exports.getNewPassword = (req, res, next) => {
                 path: "/new-password/",
                 pageTitle: "New Password",
                 errorMessage: req.flash('error'),
-                userId: userFound._id.toString()
+                userId: userFound._id.toString(),
+                token: token
             })
         })
         .catch(err => console.log(err))
+}
 
+exports.postNewPassword = (req, res, next) => {
+    const newPassword = req.body.password;
+    const userId = req.body.userId
+    const token = req.params.token;
 
+    let user; // so that the userFound can be used in the entire scope.
+    let email;
+
+    User.findOne({ 
+        resetToken: token, 
+        resetTokenExpiration: { $gt: Date.now() }, 
+        _id: userId })
+        .then(userFound => {
+            user = userFound;
+            email = userFound.email
+            return bcrypt.hash(newPassword , saltRounds)
+        })
+        .then((encryptPass) => {
+            user.password = encryptPass;
+            user.resetToken = undefined;
+            user.resetTokenExpiration = undefined;
+            return user.save()
+        })
+        .then(result => {
+            var mailOptions = {
+                from: 'prathammodi3001@outlook.com',
+                to: email,
+                subject: 'Password Changed Successfully!',
+                html: `
+                <p>You have successfully changed the password !</p>
+                `
+            };
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err => console.log(err))
+                    console.log("Email Sent Successfully !")
+            })
+            res.redirect("/")
+        })
+        .catch(err => console.log(err))
 }
