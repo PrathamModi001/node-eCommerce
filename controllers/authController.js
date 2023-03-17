@@ -197,14 +197,15 @@ exports.postNewPassword = (req, res, next) => {
     let user; // so that the userFound can be used in the entire scope.
     let email;
 
-    User.findOne({ 
-        resetToken: token, 
-        resetTokenExpiration: { $gt: Date.now() }, 
-        _id: userId })
+    User.findOne({
+        resetToken: token,
+        resetTokenExpiration: { $gt: Date.now() },
+        _id: userId
+    })
         .then(userFound => {
             user = userFound;
             email = userFound.email
-            return bcrypt.hash(newPassword , saltRounds)
+            return bcrypt.hash(newPassword, saltRounds)
         })
         .then((encryptPass) => {
             user.password = encryptPass;
