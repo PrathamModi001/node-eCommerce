@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs")
 const saltRounds = 12;
 const nodemailer = require("nodemailer")
 const crypto = require("crypto")
+
 const transporter = nodemailer.createTransport({
     service: 'hotmail',
     auth: {
@@ -22,6 +23,12 @@ exports.getLogin = (req, res, next) => {
 }
 
 exports.getSignup = (req, res, next) => {
+    let message = req.flash('error');
+    if (message.length > 0) {
+        message = message[0];
+    } else {
+        message = null;
+    }
     res.render("auth/signup", {
         path: "/signup",
         pageTitle: "Signup",
@@ -91,11 +98,11 @@ exports.postSignup = (req, res, next) => {
                         subject: 'Signup Succeeded',
                         text: `You Successfully Signed up ! Yay !`
                     };
-                    transporter.sendMail(mailOptions , (err,info) => {
-                        if(err => console.log(err))
-                        console.log("Email Sent Successfully !" , info.res  )
-                    })
                     res.redirect("/login")
+                    transporter.sendMail(mailOptions, (err, info) => {
+                        if (err => console.log(err))
+                            console.log("Email Sent Successfully !", info.res)
+                    })
                 })
         })
         .catch(err => console.log(err))
@@ -124,5 +131,61 @@ exports.postRest = (req, res, next) => {
             return res.redirect("/reset");
         }
         const token = buffer.toString('hex')
+        User.findOne({ email: req.body.email })
+            .then(userFound => {
+                if (!userFound) {
+                    req.flash('error', 'No account found with that email!')
+                    return res.redirect("/reset")
+                }
+                // a user found with that email
+                userFound.resetToken = token;
+                userFound.resetTokenExpiration = Date.now() + 3600000; // an hour from now
+                return userFound.save()
+            })
+            .then(result => {
+                var mailOptions = {
+                    from: 'prathammodi3001@outlook.com',
+                    to: req.body.email,
+                    subject: 'Reset Password!',
+                    html: `
+                    <p>You requested a password reset</p>
+                    <p>Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password.</p>
+                    `
+                };
+                transporter.sendMail(mailOptions, (err, info) => {
+                    if (err => console.log(err))
+                        console.log("Email Sent Successfully !", info.res)
+                })
+                res.redirect("/")
+            })
+            .catch(err => console.log(err))
     })
+}
+
+exports.getNewPassword = (req, res, next) => {
+
+    const token = req.params.token
+    User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } })
+        .then(userFound => {
+            if (!userFound) {
+                req.flash('error', 'No Correct Token Found!')
+                res.redirect("/reset")
+            }
+            // user with the correct resetToken found: 
+            let message = req.flash('error');
+            if (message.length > 0) {
+                message = message[0];
+            } else {
+                message = null;
+            }
+            res.render("auth/new-reset-password", {
+                path: "/new-password/",
+                pageTitle: "New Password",
+                errorMessage: req.flash('error'),
+                userId: userFound._id.toString()
+            })
+        })
+        .catch(err => console.log(err))
+
+
 }
