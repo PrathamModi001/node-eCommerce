@@ -124,7 +124,7 @@ exports.getReset = (req, res, next) => {
 }
 
 // for getting a token to change password only through a particular link.
-exports.postRest = (req, res, next) => {
+exports.postReset = (req, res, next) => {
     crypto.randomBytes(32, (err, buffer) => {
         if (err) {
             console.log(err);
