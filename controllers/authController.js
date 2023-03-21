@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs")
 const saltRounds = 12;
 const nodemailer = require("nodemailer")
 const crypto = require("crypto")
+const {validationResult} = require('express-validator/check')
 
 const transporter = nodemailer.createTransport({
     service: 'hotmail',
@@ -11,8 +12,6 @@ const transporter = nodemailer.createTransport({
         pass: process.env.GMAIL_PASS
     }
 })
-
-
 
 exports.getLogin = (req, res, next) => {
     res.render("auth/login", {
@@ -71,6 +70,14 @@ exports.postSignup = (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
     const confirmPassword = req.body.confirmPassword;
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+        return res.status(422).render("auth/signup", {
+            path: "/signup",
+            pageTitle: "Signup",
+            errorMessage: errors.array()[0]
+        });
+    }
 
     if (password !== confirmPassword) {
         req.flash('error', "Passwords Don't Match!")
