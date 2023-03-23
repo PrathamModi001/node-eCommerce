@@ -75,7 +75,7 @@ exports.postSignup = (req, res, next) => {
         return res.status(422).render("auth/signup", {
             path: "/signup",
             pageTitle: "Signup",
-            errorMessage: errors.array()[0]
+            errorMessage: errors.array()[0].msg
         });
     }
 
@@ -83,13 +83,15 @@ exports.postSignup = (req, res, next) => {
         req.flash('error', "Passwords Don't Match!")
         return res.redirect("/signup")
     }
-    User.findOne({ email: email })
-        .then(userDoc => {
-            if (userDoc) {
-                req.flash('error', "User Exists!")
-                return res.redirect("/signup");
-            }
-            return bcrypt.hash(password, saltRounds)
+    // added this in validation part
+    // User.findOne({ email: email })
+    //     .then(userDoc => {
+    //         if (userDoc) {
+    //             req.flash('error', "User Exists!")
+    //             return res.redirect("/signup");
+    //         }
+            //return
+            bcrypt.hash(password, saltRounds)
                 .then((encryptPass) => {
                     const user = new User({
                         email: email,
@@ -111,7 +113,6 @@ exports.postSignup = (req, res, next) => {
                             console.log("Email Sent Successfully !", info.res)
                     })
                 })
-        })
         .catch(err => console.log(err))
 }
 

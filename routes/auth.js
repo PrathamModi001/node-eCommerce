@@ -2,19 +2,50 @@ const express = require('express');
 
 const authController = require('../controllers/authController');
 
-const { check } = require("express-validator/check")
+const { check, body } = require('express-validator/check');
+const User = require('../models/user');
 
 const router = express.Router();
 
 router.get('/login', authController.getLogin);
-router.post('/login', authController.postLogin);
+router.post('/login', [
+    check('email' , 'Please enter a valid email.')
+    .isEmail()
+    .custom((value , {req}) => {
+        
+    })
 
-router.get('/signup',
-    check('email')
-        .isEmail()
-        .withMessage('Please Enter a valid Email')
-    , authController.getSignup);
-router.post('/signup', authController.postSignup);
+], authController.postLogin);
+
+router.get('/signup', authController.getSignup);
+router.post('/signup',
+    [
+        check('email')
+            .isEmail()
+            .withMessage('Please enter a valid email.')
+            .custom((value, { req }) => {
+                return User.findOne({ email: value }).then(userDoc => {
+                    if (userDoc) {
+                        return Promise.reject(
+                            'E-Mail exists already, please pick a different one.'
+                        );
+                    }
+                });
+            }),
+        body(
+            'password',
+            'Please enter a password with only numbers and text and at least 5 characters.'
+        )
+            .isLength({ min: 5 })
+            .isAlphanumeric(),
+        body('confirmPassword').custom((value, { req }) => {
+            if (value !== req.body.password) {
+                throw new Error('Passwords have to match!');
+            }
+            return true;
+        })
+    ]   ,
+    authController.postSignup);
 
 router.post('/logout', authController.postLogout);
 
