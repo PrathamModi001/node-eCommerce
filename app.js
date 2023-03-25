@@ -57,7 +57,9 @@ app.use((req, res, next) => {
       req.user = user;
       next();
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      throw new Error(err);
+    })
 });
 
 // before accessing all routes, since want to PASS ON THESE LOCAL VARIABLES TO ALL VIEWS
@@ -73,6 +75,9 @@ app.use((req,res,next) => {
 app.use('/admin', adminRoutes); // /admin added before all adminRoutes=> /admin/add-product
 app.use(shopRoutes);
 app.use(authRoutes);
+
+// any routes not handled by above and has a error code of 500 comes here.
+app.get('/500', errorController.get500);
 
 // if a route doesnt fall in any of the above routes: then show 404 page: 
 app.use(errorController.get404);
