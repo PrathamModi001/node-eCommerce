@@ -9,12 +9,15 @@ const router = express.Router();
 
 router.get('/login', authController.getLogin);
 router.post('/login', [
-    check('email' , 'Please enter a valid email.')
-    .isEmail()
-    .custom((value , {req}) => {
-        
-    })
-
+    body('email' , 'Please enter a valid email.')
+        .isEmail()
+        .withMessage('Please enter a valid email.'),
+    body(
+        'password',
+        'Please enter a password with only numbers and text and at least 5 characters.'
+    )
+    .isLength({min:5})
+    .isAlphanumeric()
 ], authController.postLogin);
 
 router.get('/signup', authController.getSignup);
@@ -44,7 +47,7 @@ router.post('/signup',
             }
             return true;
         })
-    ]   ,
+    ],
     authController.postSignup);
 
 router.post('/logout', authController.postLogout);
