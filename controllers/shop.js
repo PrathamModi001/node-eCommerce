@@ -1,3 +1,6 @@
+const fs = require('fs')
+const path = require('path')
+
 const Product = require('../models/product');
 const Order = require('../models/order');
 
@@ -151,3 +154,44 @@ exports.getOrders = (req, res, next) => {
       return next(error)
     });
 };
+
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+  const invoiceName = 'invoice-' + orderId + '.pdf'
+  const invoiceFilePath = path.join('data', 'invoices', invoiceName);
+
+  Order.findById(orderId)
+    .then(order => {
+      // if no order found by that id
+      if (!order) {
+        return next(new Error('No Order Found!'))
+      }
+      // if order found but not matching user ids, user unauthorized error throw
+      if (order.user.userId.toString() !== req.user._id.toString()) {
+        return next(new Error('User Unauthorized!'))
+      }
+
+      // with this code node will read the entire code and store it in memory and then serve from memory which for bigger files may overflow
+      // fs.readFile(invoiceFilePath, (err, data) => {
+      //   if (err) {
+      //     return next()
+      //   }
+      //   res.setHeader('Content-Type', 'application/pdf');
+      //   res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+      //   res.send(data)
+      // })
+
+      // so we should stream the data
+      const file = fs.createReadStream(invoiceFilePath);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+      // forward the data that is read while streaming in chunks TO the res because res is writable stream and file here is readStream
+      file.pipe(res)
+    })
+    .catch(err => {
+      return next(err);
+    });
+
+
+
+}
