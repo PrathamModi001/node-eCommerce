@@ -1,5 +1,7 @@
 const { validationResult } = require('express-validator');
 
+const fileHelper = require('../util/file')
+
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
@@ -59,7 +61,7 @@ exports.postAddProduct = (req, res, next) => {
     title: title,
     price: price,
     description: description,
-    imageUrl: '/'+ imageUrl,
+    imageUrl: imageUrl,
     userId: req.user
   });
   product
@@ -139,6 +141,8 @@ exports.postEditProduct = (req, res, next) => {
       product.price = updatedPrice;
       product.description = updatedDesc;
       if(updatedImage){
+        // deletes the older file so it doesnt start accumulating
+        fileHelper.deleteFile(product.imageUrl);
         product.imageUrl = updatedImage.path;
       }
       return product.save().then(result => {
@@ -174,14 +178,21 @@ exports.getProducts = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteOne({ _id: prodId, userId: req.user._id })
+  Product.findById(prodId)
+    .then(product => {
+      if (!product) {
+        return next(new Error('Product not found.'));
+      }
+      fileHelper.deleteFile(product.imageUrl);
+      return Product.deleteOne({ _id: prodId, userId: req.user._id });
+    })
     .then(() => {
       console.log('DESTROYED PRODUCT');
       res.redirect('/admin/products');
     })
     .catch(err => {
-      const error = new Error(err)
+      const error = new Error(err);
       error.httpStatusCode = 500;
-      return next(error)
+      return next(error);
     });
 };
