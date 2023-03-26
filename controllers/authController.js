@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs")
 const saltRounds = 12;
 const nodemailer = require("nodemailer")
 const crypto = require("crypto")
-const { validationResult } = require('express-validator/check')
+const { validationResult } = require('express-validator')
 
 const transporter = nodemailer.createTransport({
     service: 'hotmail',
