@@ -2,6 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const PDFDocument = require('pdfkit')
 
+const ITEMS_PER_PAGE = 2;
+
 const Product = require('../models/product');
 const Order = require('../models/order');
 
@@ -41,14 +43,22 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
+  const page = req.query.page;
+  let totalItems;
+
   Product.find()
+    .countDocuments()
+    .then(totalProds => {
+      totalItems = totalProds;
+      return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE)
+    })
     .then(products => {
       res.render('shop/index', {
         prods: products,
         pageTitle: 'Shop',
         path: '/',
-        isAuthenticated: req.session.isLoggedIn,
-        csrfToken: req.csrfToken()
       });
     })
     .catch(err => {
