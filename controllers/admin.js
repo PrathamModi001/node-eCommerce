@@ -38,7 +38,10 @@ exports.postAddProduct = (req, res, next) => {
     });
   }
 
-  if (!errors.isEmpty()) {
+  const imageUrl = image.path
+
+  try{if (!errors.isEmpty()) {
+    
     return res.status(422).render('admin/edit-product', {
       pageTitle: 'Add Product',
       path: '/admin/edit-product',
@@ -53,9 +56,10 @@ exports.postAddProduct = (req, res, next) => {
       errorMessage: errors.array()[0].msg,
       validationErrors: errors.array()
     });
+  }}
+  catch(err){
+    return console.log(err)
   }
-
-  const imageUrl = image.path
   
   const product = new Product({
     title: title,
