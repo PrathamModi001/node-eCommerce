@@ -140,7 +140,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
 };
 
 exports.getCheckout = (req, res, next) => {
-  let total=0;
+  let total = 0;
   let products;
   req.user
     .populate('cart.items.productId')
@@ -155,19 +155,24 @@ exports.getCheckout = (req, res, next) => {
       // configuring stripe checkout session
       return stripe.checkout.sessions.create({
         payment_method_types: ['card'],
+        mode: 'payment',
         line_items: products.map(product => {
           // returning a product from the products while config its properties
           return {
-            name: product.productId.title,
-            description: product.productId.description,
-            amount: product.productId.price,
-            currency: 'INR',
-            quantity: p.quantity,
-          }
+            price_data: {
+              currency: 'INR',
+              unit_amount: product.productId.price * 100,
+              product_data: {
+                name: product.productId.title,
+                description: product.productId.description,
+              },
+            },
+            quantity: product.quantity,
+          };
         }),
         // https   + :// +   localhost:3000 or whatever hosting you do + actual route
-        success_url: req.protocol +'://' + req.get('host') + '/checkout/success' ,
-        cancel_url: req.protocol +'://' + req.get('host') + '/checkout/cancel'
+        success_url: req.protocol + '://' + req.get('host') + '/checkout/success',
+        cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel'
       });
     })
     // stripe session recieved
@@ -187,7 +192,7 @@ exports.getCheckout = (req, res, next) => {
     });
 };
 
-exports.postOrder = (req, res, next) => {
+exports.getCheckoutSuccess = (req, res, next) => {
   req.user
     .populate('cart.items.productId')
     .execPopulate()
@@ -211,9 +216,9 @@ exports.postOrder = (req, res, next) => {
       res.redirect('/orders');
     })
     .catch(err => {
-      const error = new Error(err)
+      const error = new Error(err);
       error.httpStatusCode = 500;
-      return next(error)
+      return next(error);
     });
 };
 
