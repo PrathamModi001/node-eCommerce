@@ -26,6 +26,7 @@ const store = new MongoDBStore({
 // csrf protection and flash after sessions been initiated.
 let csrfProtection = csrf();
 
+// multer configs
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, './data/images');
