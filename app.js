@@ -1,6 +1,8 @@
 require("dotenv").config()
 
 const path = require('path');
+const PORT = process.env.PORT || 3000;
+const fs = require('fs')
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -10,6 +12,10 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 var csrf = require('@dr.pogodin/csurf')
 const flash = require('connect-flash')
 const multer = require('multer')
+const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan')
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -105,6 +111,15 @@ app.use('/admin', adminRoutes); // /admin added before all adminRoutes=> /admin/
 app.use(shopRoutes);
 app.use(authRoutes);
 
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, 'access.log'), {flags: 'a'}
+)
+
+app.use(helmet());
+app.use(cors());
+app.use(compression());
+app.use(morgan('combined' , {stream : accessLogStream}))
+
 // any routes not handled by above and has a error code of 500 comes here.
 app.get('/500', errorController.get500);
 
@@ -120,7 +135,7 @@ app.use((error, req,res,next) => {
 mongoose
   .connect(MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true})
   .then(result => {
-    app.listen(3000);
+    app.listen(PORT);
   })
   .catch(err => {
     console.log(err);

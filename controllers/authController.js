@@ -79,7 +79,7 @@ exports.postSignup = (req, res, next) => {
             res.redirect("/login")
             transporter.sendMail(mailOptions, (err, info) => {
                 if (err => console.log(err))
-                    console.log("Email Sent Successfully !", info.res)
+                    console.log("Email Sent Successfully !")
             })
         })
         .catch(err => {

@@ -21,7 +21,7 @@
                 <button id="order-btn" class="btn">ORDER</button>
                 <script src="https://js.stripe.com/v3/"></script>
                 <script>
-                    var stripe = Stripe('pk_test_51Mv0odSDZqriEPETpKvR2oFUvAx0I1EoSOpW43kCioxrtAeZjSQF8Af79DkmCNRpSVULGGH3Do0bGOyusHbbkUo800hkRLmI82');
+                    var stripe = Stripe('pk_live_51Mv0odSDZqriEPETzWEp8JNLXgXNkF0nM7UqSlUA03zV7kRbpaJrsrtnANATMK76DgIH5TOekZXOzMmBwgsuf9hO00opayzcXd');
                     var orderBtn = document.getElementById('order-btn');
                     orderBtn.addEventListener('click', function() {
                         stripe.redirectToCheckout({
