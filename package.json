@@ -13,8 +13,11 @@
   "devDependencies": {
     "nodemon": "^1.18.3"
   },
+  "engines": {
+    "node": ">=14 <15"
+  },
   "dependencies": {
-    "@dr.pogodin/csurf": "^1.12.2",
+    "@dr.pogodin/csurf": "^1.12.4",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "compression": "^1.7.4",
