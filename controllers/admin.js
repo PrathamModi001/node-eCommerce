@@ -17,28 +17,10 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.postAddProduct = (req, res, next) => {
   const title = req.body.title;
-  const image = req.file;
+  const imageUrl = req.body.image;
   const price = req.body.price;
   const description = req.body.description;
   const errors = validationResult(req);
-  
-  if(!image){
-    return res.status(422).render('admin/edit-product', {
-      pageTitle: 'Add Product',
-      path: '/admin/edit-product',
-      editing: false,
-      hasError: true,
-      product: {
-        title: title,
-        price: price,
-        description: description
-      },
-      errorMessage: 'Attached file is not an image!',
-      validationErrors: []
-    });
-  }
-
-  const imageUrl = image.path
 
   try{if (!errors.isEmpty()) {
     
@@ -114,7 +96,7 @@ exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const updatedImage = req.file;
+  const updatedImage = req.body.image;
   const updatedDesc = req.body.description;
 
   const errors = validationResult(req);
@@ -145,9 +127,7 @@ exports.postEditProduct = (req, res, next) => {
       product.price = updatedPrice;
       product.description = updatedDesc;
       if(updatedImage){
-        // deletes the older file so it doesnt start accumulating
-        fileHelper.deleteFile(product.imageUrl);
-        product.imageUrl = updatedImage.path;
+        product.imageUrl = updatedImage;
       }
       return product.save().then(result => {
         console.log('UPDATED PRODUCT!');

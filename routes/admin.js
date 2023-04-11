@@ -26,6 +26,9 @@ router.post('/add-product',
     body('price')
         .isFloat(),
 
+    body('image')
+        .isURL(),
+    
     body('description')
         .isLength({ min: 5, max: 400 })
         .trim()
